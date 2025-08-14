@@ -11,7 +11,21 @@ Graph createGraph(int width,int height,int scale)
         .oX = width/2,
         .oY = height/2,
         .font = NULL,
+        .zoomIn = false,
+        .zoomOut = false,
     };
+}
+
+void updateGraph(Graph* graph)
+{
+    if(graph->zoomOut && graph->scale > 10) 
+            graph->scale -= 5;
+
+    if(graph->zoomIn)
+        graph->scale += 5;
+
+
+    graph->zoomOut = graph->zoomIn = false;
 }
 
 static void drawAxis(SDL_Renderer* renderer,Graph* graph)
@@ -131,18 +145,69 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
     drawGrid(renderer,graph);
     drawAxis(renderer,graph);
     drawRuler(renderer,graph);
+    drawPoints(renderer,graph);
 
     drawText(renderer,graph->font,"graphSim",10,10,0,0,255);
-
     char* textScale = NULL;
     char sScale[4]; i_toa(graph->scale,sScale);
-
     appendStr(&textScale,"SCALE: ");
     appendStr(&textScale,sScale);
-
+    appendStr(&textScale,"px");
     drawText(renderer,graph->font,textScale,10,25,0,0,255);
     free(textScale);
 }
+
+
+
+
+void setPoint(Graph* graph,float x,float y)
+{
+    Point point = {x,y};
+    char sx[5]; snprintf(sx,5,"%.1f",point.x);
+    char sy[5]; snprintf(sy,5,"%.1f",point.y);
+
+    char* info = NULL;
+    appendStr(&info,sx);
+    appendStr(&info,",");
+    appendStr(&info,sy);
+
+    strcpy(point.info,info);
+
+    free(info);
+
+    LIST_ADD(Point,&graph->points,point); 
+}
+
+void printPoints(Graph* graph)
+{
+
+    for(int i = 0;i < graph->points.count;i++)
+    {
+        Point point = LIST_GET(Point,&graph->points,i);
+
+        printf("Point %d = %g , %g \"%s\"\n",i,point.x,point.y,point.info);
+    }
+}
+
+void drawPoints(SDL_Renderer* renderer,Graph* graph)
+{
+    SDL_SetRenderDrawColor(renderer,0,0,255,255);
+
+    for(int i = 0;i < graph->points.count;i++)
+    {
+        Point point = LIST_GET(Point,&graph->points,i);
+
+        int sx = graph->oX + (graph->scale * point.x);
+        int sy = graph->oY - (graph->scale * point.y);
+
+
+        SDL_Rect p = {sx-1,sy-2,4,4};
+
+        SDL_RenderFillRect(renderer,&p);
+        drawText(renderer,graph->font,point.info,sx-10,sy-15,1,50,32);
+    }
+}
+
 
 void drawGraph(SDL_Renderer* renderer,Graph* graph)
 {

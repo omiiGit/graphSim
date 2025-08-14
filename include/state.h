@@ -6,11 +6,36 @@
 #include <stdbool.h>
 #include "graph.h"
 
+#define PANE_RIGHT \
+do{\
+state->graph.oX -= 10;\
+state->graph.w += 20;\
+}while(0)\
+
+
+#define PANE_LEFT \
+do{\
+state->graph.oX += 10;\
+state->graph.w += 20;\
+}while(0)\
+
+#define PANE_UP \
+do{\
+state->graph.oY += 10;\
+state->graph.h += 20;\
+}while(0)\
+
+#define PANE_DOWN \
+do{\
+state->graph.oY -= 10;\
+state->graph.h += 20;\
+}while(0)\
+
 typedef struct 
 {
     SDL_Window* window;
     SDL_Renderer* renderer;
-    int w,h;
+    int w,h,dw,dh;
 
     Graph graph;
 

@@ -1,0 +1,38 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-g",
+      "-Wall",
+      "-Iinclude",
+      "-I/usr/include/SDL2",
+      "-D_GNU_SOURCE=1",
+      "-D_REENTRANT",
+      "-c",
+      "-o",
+      "build/main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/om/Programs/C/graphSim",
+    "file": "/home/om/Programs/C/graphSim/src/main.c",
+    "output": "/home/om/Programs/C/graphSim/build/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-g",
+      "-Wall",
+      "-Iinclude",
+      "-I/usr/include/SDL2",
+      "-D_GNU_SOURCE=1",
+      "-D_REENTRANT",
+      "-c",
+      "-o",
+      "build/state.o",
+      "src/state.c"
+    ],
+    "directory": "/home/om/Programs/C/graphSim",
+    "file": "/home/om/Programs/C/graphSim/src/state.c",
+    "output": "/home/om/Programs/C/graphSim/build/state.o"
+  }
+]

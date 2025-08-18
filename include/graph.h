@@ -8,6 +8,13 @@
 #include "utils.h"
 #include "list.h"
 
+typedef enum 
+{
+    NORMAL,
+    DRAW,
+    MOVE,
+}MODE;
+
 typedef struct 
 {
     int x,y;
@@ -30,6 +37,8 @@ typedef struct
 
     bool zoomOut;
     bool zoomIn;
+
+    MODE mode;
 }Graph;
 
 typedef struct 
@@ -49,6 +58,7 @@ static void drawAxis(SDL_Renderer* renderer,Graph* graph);
 void setPoint(Graph* graph,float x,float y);
 void printPoints(Graph* graph);
 void drawPoints(SDL_Renderer* renderer,Graph* graph);
+void setMode(Graph* graph,MODE mode);
 
 
 void drawGraph(SDL_Renderer* renderer,Graph* graph);

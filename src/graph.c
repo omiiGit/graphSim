@@ -13,6 +13,7 @@ Graph createGraph(int width,int height,int scale)
         .font = NULL,
         .zoomIn = false,
         .zoomOut = false,
+        .mode = NORMAL,
     };
 }
 
@@ -155,6 +156,17 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
     appendStr(&textScale,"px");
     drawText(renderer,graph->font,textScale,10,25,0,0,255);
     free(textScale);
+
+    drawText(renderer,graph->font,"MODE: ",graph->w-150,30,0,0,0);
+    char* textMode = NULL;
+    switch(graph->mode)
+    {
+        //case NORMAL: appendStr(&textMode,"NORMAL"); break;
+        case NORMAL: textMode = "NORMAL"; break;
+        case DRAW: textMode = "DRAW"; break;
+        case MOVE: textMode = "MOVE"; break;
+    }
+    drawText(renderer,graph->font,textMode,graph->w-110,30,255,0,0);
 }
 
 
@@ -214,3 +226,7 @@ void drawGraph(SDL_Renderer* renderer,Graph* graph)
     renderGraph(renderer,graph);
 }
 
+void setMode(Graph* graph,MODE mode)
+{
+    graph->mode = mode;
+}

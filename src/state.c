@@ -103,6 +103,7 @@ void updateState(State* state)
         drawGraph(state->renderer,&state->graph);
 
         SDL_RenderPresent(state->renderer);
+        SDL_Delay(16);
     }
 
 }

@@ -29,6 +29,8 @@ void initState(State* state,const char* path)
 
     state->graph = createGraph(state->w,state->h,20);
 
+    initGraph(&state->graph,NORMAL);
+
     state->graph.font = state->font;
 }
 
@@ -42,9 +44,8 @@ void updateState(State* state)
 {
     bool quit = false;
     SDL_Event e;
-    int mouseX,mouseY;
+    //int mouseX,mouseY;
 
-    setPoint(&state->graph,1,1);
 
     while(!quit)
     {
@@ -54,50 +55,11 @@ void updateState(State* state)
             switch(e.type)
             {
                 case SDL_QUIT: quit = true; break;
-                case SDL_KEYDOWN:
-                    switch(e.key.keysym.sym)
-                    {
-                        case SDLK_RIGHT:
-                            PANE_RIGHT;
-                        break;
-                        case SDLK_LEFT:
-                            PANE_LEFT; 
-                        break;
-                        case SDLK_UP:
-                            PANE_UP; 
-                        break;
-                        case SDLK_DOWN:
-                            PANE_DOWN;
-                        break;
-                    }
-                break;
-                case SDL_MOUSEWHEEL:
-
-                    if(e.wheel.y < 0)
-                    {
-                        state->graph.zoomOut = true;
-                    }
-                    else 
-                    {
-                        state->graph.zoomIn = true;
-                    }
-                break;
-                case SDL_MOUSEBUTTONDOWN:
-                    SDL_GetMouseState(&mouseX,&mouseY);
-
-                    float x = (float)(mouseX - state->graph.oX) / state->graph.scale;
-
-                    float y = (float)(mouseY - state->graph.oY) / -state->graph.scale; 
-
-                    setPoint(&state->graph,x,y);
-                    //printPoints(&state->graph);
-                break;
-              
             }
+            graphEvent(e,&state->graph);
         }
 
         updateGraph(&state->graph);
-
 
         drawStateBackground(state,255,255,255);
         drawGraph(state->renderer,&state->graph);

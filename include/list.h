@@ -22,7 +22,7 @@ typedef struct
     int count;
 }List;
 
-static Node createNode()
+static inline Node createNode()
 {    
     return(Node)
     {
@@ -32,7 +32,7 @@ static Node createNode()
     };
 }
 
-static List createList()
+static inline List createList()
 {
     return(List)
     {

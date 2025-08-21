@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g -Wall -Iinclude `sdl2-config --cflags`
-CLIBS = `sdl2-config --libs` -lSDL2_ttf
+CLIBS = `sdl2-config --libs` -lSDL2_ttf -lSDL2_image
 
 SRC = $(wildcard src/*.c)
 INC = $(wildcard include/*.h)

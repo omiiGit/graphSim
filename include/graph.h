@@ -3,16 +3,48 @@
 
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include "font.h"
 #include "utils.h"
 #include "list.h"
+#include "toolbar.h"
+
+
+#define PANE_RIGHT \
+do{\
+graph->oX -= 10;\
+graph->w += 20;\
+}while(0)\
+
+
+#define PANE_LEFT \
+do{\
+graph->oX += 10;\
+graph->w += 20;\
+}while(0)\
+
+#define PANE_UP \
+do{\
+graph->oY += 10;\
+graph->h += 20;\
+}while(0)\
+
+#define PANE_DOWN \
+do{\
+graph->oY -= 10;\
+graph->h += 20;\
+}while(0)\
+
+
 
 typedef enum 
 {
-    NORMAL,
-    DRAW,
-    MOVE,
+    NORMAL = 0x000001,
+    DRAW = 0x000002,
+    INFO = 0x000004,
+    DELETE = 0x000008,
+    MOVE = 0x000016,
 }MODE;
 
 typedef struct 
@@ -38,6 +70,9 @@ typedef struct
     bool zoomOut;
     bool zoomIn;
 
+    ToolBar toolbar;
+
+
     MODE mode;
 }Graph;
 
@@ -48,20 +83,21 @@ typedef struct
 }Point;
 
 Graph createGraph(int width,int height,int scale);
+void initGraph(Graph* graph,MODE mode);
 void updateGraph(Graph* graph);
 void drawGrid(SDL_Renderer* renderer,Graph* graph);
 void drawRuler(SDL_Renderer* renderer,Graph* graph);
 void renderGraph(SDL_Renderer* renderer,Graph* graph);
-static void drawAxis(SDL_Renderer* renderer,Graph* graph);
 
 
-void setPoint(Graph* graph,float x,float y);
+void setPoint(Graph* graph,int mx,int y);
 void printPoints(Graph* graph);
 void drawPoints(SDL_Renderer* renderer,Graph* graph);
 void setMode(Graph* graph,MODE mode);
 
 
 void drawGraph(SDL_Renderer* renderer,Graph* graph);
+void graphEvent(SDL_Event e,Graph* graph);
 
 
 #endif 

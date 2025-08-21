@@ -14,6 +14,7 @@ Graph createGraph(int width,int height,int scale)
         .zoomIn = false,
         .zoomOut = false,
         .mode = NORMAL,
+        .toolbar = createToolBar(10,100,60,300),
     };
 }
 
@@ -25,8 +26,68 @@ void updateGraph(Graph* graph)
     if(graph->zoomIn)
         graph->scale += 5;
 
+    if(graph->toolbar.draw.clicked)
+    {
+        printf("draw is clicked\n");
+
+        if(!graph->toolbar.draw.selected)
+        {
+            graph->toolbar.draw.selected = true;
+            graph->mode |= DRAW;
+        }
+        else 
+        {
+            graph->toolbar.draw.selected = false;
+            graph->mode &= ~DRAW;
+
+        }
+
+        graph->toolbar.draw.clicked = false;
+    }
+
+    if(graph->toolbar.info.clicked)
+    {
+        printf("info is clicked\n");
+        
+        if(!graph->toolbar.info.selected)
+        {
+            graph->toolbar.info.selected = true;
+            graph->mode |= INFO;
+        }
+        else 
+        {
+            graph->toolbar.info.selected = false;
+            graph->mode &= ~INFO;
+        }
+
+
+        graph->toolbar.info.clicked = false;
+    }
+
+    if(graph->toolbar.delete.clicked)
+    {
+        printf("delete is clicked\n");
+
+        if(!graph->toolbar.delete.selected)
+        {
+            graph->toolbar.delete.selected = true;
+        }
+        else 
+        {
+            graph->toolbar.delete.selected = false;
+
+        }
+
+
+        graph->toolbar.delete.clicked = false;
+    }
 
     graph->zoomOut = graph->zoomIn = false;
+}
+
+void initGraph(Graph* graph,MODE mode)
+{
+    graph->mode = mode;
 }
 
 static void drawAxis(SDL_Renderer* renderer,Graph* graph)
@@ -148,6 +209,8 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
     drawRuler(renderer,graph);
     drawPoints(renderer,graph);
 
+    drawToolBar(renderer,&graph->toolbar);
+
     drawText(renderer,graph->font,"graphSim",10,10,0,0,255);
     char* textScale = NULL;
     char sScale[4]; i_toa(graph->scale,sScale);
@@ -157,23 +220,17 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
     drawText(renderer,graph->font,textScale,10,25,0,0,255);
     free(textScale);
 
-    drawText(renderer,graph->font,"MODE: ",graph->w-150,30,0,0,0);
-    char* textMode = NULL;
-    switch(graph->mode)
-    {
-        //case NORMAL: appendStr(&textMode,"NORMAL"); break;
-        case NORMAL: textMode = "NORMAL"; break;
-        case DRAW: textMode = "DRAW"; break;
-        case MOVE: textMode = "MOVE"; break;
-    }
-    drawText(renderer,graph->font,textMode,graph->w-110,30,255,0,0);
 }
 
 
 
 
-void setPoint(Graph* graph,float x,float y)
+void setPoint(Graph* graph,int mx,int my)
 {
+
+    float x = (float)(mx - graph->oX) / graph->scale;
+    float y = (float)(my - graph->oY) / -graph->scale; 
+
     Point point = {x,y};
     char sx[5]; snprintf(sx,5,"%.1f",point.x);
     char sy[5]; snprintf(sy,5,"%.1f",point.y);
@@ -216,7 +273,9 @@ void drawPoints(SDL_Renderer* renderer,Graph* graph)
         SDL_Rect p = {sx-1,sy-2,4,4};
 
         SDL_RenderFillRect(renderer,&p);
-        drawText(renderer,graph->font,point.info,sx-10,sy-15,1,50,32);
+        
+        if(graph->mode & INFO)
+            drawText(renderer,graph->font,point.info,sx-10,sy-15,1,50,32);
     }
 }
 
@@ -229,4 +288,55 @@ void drawGraph(SDL_Renderer* renderer,Graph* graph)
 void setMode(Graph* graph,MODE mode)
 {
     graph->mode = mode;
+}
+
+
+void graphEvent(SDL_Event e,Graph* graph)
+{
+
+    int mouseX,mouseY;
+
+    switch(e.type)
+    {
+        case SDL_KEYDOWN:
+            switch(e.key.keysym.sym)
+            {
+                case SDLK_RIGHT:
+                    PANE_RIGHT;
+                break;
+                case SDLK_LEFT:
+                    PANE_LEFT; 
+                break;
+                case SDLK_UP:
+                    PANE_UP;
+                break;
+                case SDLK_DOWN:
+                    PANE_DOWN;
+                break;
+            }
+            break;
+            case SDL_MOUSEWHEEL:
+
+                if(e.wheel.y < 0)
+                {
+                    graph->zoomOut = true;
+                }
+                else 
+                {
+                    graph->zoomIn = true;
+                }
+            break;
+            case SDL_MOUSEMOTION:
+
+            break;
+            case SDL_MOUSEBUTTONDOWN:
+                if(graph->toolbar.hover == false && (graph->mode & DRAW))
+                {
+                    SDL_GetMouseState(&mouseX,&mouseY);
+                    setPoint(graph,mouseX,mouseY);
+                }
+            break;
+    }
+
+    toolbarEvent(e,&graph->toolbar);
 }

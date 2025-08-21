@@ -5,6 +5,7 @@
 int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
+    IMG_Init(IMG_INIT_PNG);
     TTF_Init();
 
     State window = createState("graphSim",WIDTH,HEIGHT);

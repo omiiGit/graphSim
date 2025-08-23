@@ -78,8 +78,12 @@ typedef struct
 
 typedef struct 
 {   
+    int mx,my;
     float x,y;
     char info[10];
+
+    bool hover;
+    bool clicked;
 }Point;
 
 Graph createGraph(int width,int height,int scale);
@@ -90,8 +94,10 @@ void drawRuler(SDL_Renderer* renderer,Graph* graph);
 void renderGraph(SDL_Renderer* renderer,Graph* graph);
 
 
-void setPoint(Graph* graph,int mx,int y);
+void setPoint(Graph* graph,int mx,int my);
+void deletePoint(Graph* graph,int mx,int my);
 void printPoints(Graph* graph);
+void drawPointSprite(SDL_Renderer* renderer,Graph* graph);
 void drawPoints(SDL_Renderer* renderer,Graph* graph);
 void setMode(Graph* graph,MODE mode);
 

@@ -77,6 +77,18 @@ do{\
     *((type*)__t->data);\
 })\
 
+#define LIST_GET_WHOLE(type,list,pos)\
+({\
+    Node* __t = (list)->head;\
+\
+    for(int __i = 0;__i < (pos);__i++)\
+    {\
+        __t = __t->next;\
+    }\
+\
+    (type*)__t->data;\
+})\
+
 #define LIST_DEL(type,list,pos)\
 do{\
     if((pos) == 0)\

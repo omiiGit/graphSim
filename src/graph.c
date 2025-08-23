@@ -22,13 +22,36 @@ void updateGraph(Graph* graph)
 {
     if(graph->zoomOut && graph->scale > 10) 
             graph->scale -= 5;
-
     if(graph->zoomIn)
         graph->scale += 5;
+    graph->zoomOut = graph->zoomIn = false;
+
+
+    if(graph->toolbar.hover == false && (graph->mode & DELETE))
+    {
+        int mx,my;
+
+        SDL_GetMouseState(&mx,&my);
+
+        for(int i = 0;i < graph->points.count;i++)
+        {
+            Point* point = LIST_GET_WHOLE(Point,&graph->points,i);
+
+            if(mx+1 >= point->mx && mx+1 <= point->mx + 4 && my+2 >= point->my && my+2 <= point->my + 4)
+            {
+                point->hover = true;
+            }
+            else 
+            {
+                point->hover = false;
+            }
+        }
+    }
 
     if(graph->toolbar.draw.clicked)
     {
         printf("draw is clicked\n");
+        graph->mode &= ~DELETE;
 
         if(!graph->toolbar.draw.selected)
         {
@@ -67,14 +90,20 @@ void updateGraph(Graph* graph)
     if(graph->toolbar.delete.clicked)
     {
         printf("delete is clicked\n");
+        graph->mode &= ~DRAW;
+
+        if(graph->toolbar.draw.selected)
+            graph->toolbar.draw.selected = false;
 
         if(!graph->toolbar.delete.selected)
         {
             graph->toolbar.delete.selected = true;
+            graph->mode |= DELETE;
         }
         else 
         {
             graph->toolbar.delete.selected = false;
+            graph->mode &= ~DELETE;
 
         }
 
@@ -82,7 +111,6 @@ void updateGraph(Graph* graph)
         graph->toolbar.delete.clicked = false;
     }
 
-    graph->zoomOut = graph->zoomIn = false;
 }
 
 void initGraph(Graph* graph,MODE mode)
@@ -208,6 +236,8 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
     drawAxis(renderer,graph);
     drawRuler(renderer,graph);
     drawPoints(renderer,graph);
+    if(graph->mode & DRAW)
+        drawPointSprite(renderer,graph);
 
     drawToolBar(renderer,&graph->toolbar);
 
@@ -224,16 +254,16 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
 
 
 
-
 void setPoint(Graph* graph,int mx,int my)
 {
 
     float x = (float)(mx - graph->oX) / graph->scale;
     float y = (float)(my - graph->oY) / -graph->scale; 
 
-    Point point = {x,y};
-    char sx[5]; snprintf(sx,5,"%.1f",point.x);
-    char sy[5]; snprintf(sy,5,"%.1f",point.y);
+    Point point = {mx,my,x,y};
+    point.hover = false;
+    char sx[10]; snprintf(sx,10,"%.1f",point.x);
+    char sy[10]; snprintf(sy,10,"%.1f",point.y);
 
     char* info = NULL;
     appendStr(&info,sx);
@@ -245,6 +275,14 @@ void setPoint(Graph* graph,int mx,int my)
     free(info);
 
     LIST_ADD(Point,&graph->points,point); 
+    printPoints(graph);
+}
+
+void deletePoint(Graph* graph,int mx,int my)
+{
+    float x = (float)(mx - graph->oX) / graph->scale;
+    float y = (float)(my - graph->oY) / -graph->scale; 
+
 }
 
 void printPoints(Graph* graph)
@@ -254,13 +292,27 @@ void printPoints(Graph* graph)
     {
         Point point = LIST_GET(Point,&graph->points,i);
 
-        printf("Point %d = %g , %g \"%s\"\n",i,point.x,point.y,point.info);
+        printf("Point %d = %g , %g \"%s\" %d\n",i,point.x,point.y,point.info,point.hover);
     }
+}
+
+void drawPointSprite(SDL_Renderer* renderer,Graph* graph)
+{
+    int mx,my;
+
+    SDL_GetMouseState(&mx,&my);
+
+    SDL_Rect sprite = {mx-1,my-2,4,4};
+    SDL_SetRenderTarget(renderer,NULL);
+
+    SDL_SetRenderDrawColor(renderer,172,216,230,255);
+    SDL_RenderFillRect(renderer,&sprite);
+
+    SDL_SetRenderTarget(renderer,NULL);
 }
 
 void drawPoints(SDL_Renderer* renderer,Graph* graph)
 {
-    SDL_SetRenderDrawColor(renderer,0,0,255,255);
 
     for(int i = 0;i < graph->points.count;i++)
     {
@@ -268,6 +320,11 @@ void drawPoints(SDL_Renderer* renderer,Graph* graph)
 
         int sx = graph->oX + (graph->scale * point.x);
         int sy = graph->oY - (graph->scale * point.y);
+        
+        if(point.hover == true)
+            SDL_SetRenderDrawColor(renderer,255,0,0,255);
+        else 
+            SDL_SetRenderDrawColor(renderer,0,0,255,255);
 
 
         SDL_Rect p = {sx-1,sy-2,4,4};
@@ -275,7 +332,7 @@ void drawPoints(SDL_Renderer* renderer,Graph* graph)
         SDL_RenderFillRect(renderer,&p);
         
         if(graph->mode & INFO)
-            drawText(renderer,graph->font,point.info,sx-10,sy-15,1,50,32);
+            drawText(renderer,graph->font,point.info,sx-25,sy-15,1,50,32);
     }
 }
 
@@ -283,11 +340,6 @@ void drawPoints(SDL_Renderer* renderer,Graph* graph)
 void drawGraph(SDL_Renderer* renderer,Graph* graph)
 {
     renderGraph(renderer,graph);
-}
-
-void setMode(Graph* graph,MODE mode)
-{
-    graph->mode = mode;
 }
 
 
@@ -301,16 +353,16 @@ void graphEvent(SDL_Event e,Graph* graph)
         case SDL_KEYDOWN:
             switch(e.key.keysym.sym)
             {
-                case SDLK_RIGHT:
+                case SDLK_d:
                     PANE_RIGHT;
                 break;
-                case SDLK_LEFT:
+                case SDLK_a:
                     PANE_LEFT; 
                 break;
-                case SDLK_UP:
+                case SDLK_w:
                     PANE_UP;
                 break;
-                case SDLK_DOWN:
+                case SDLK_s:
                     PANE_DOWN;
                 break;
             }
@@ -334,6 +386,22 @@ void graphEvent(SDL_Event e,Graph* graph)
                 {
                     SDL_GetMouseState(&mouseX,&mouseY);
                     setPoint(graph,mouseX,mouseY);
+                }
+                if(graph->toolbar.hover == false && (graph->mode & DELETE))
+                {
+                           int mx,my;
+
+                    SDL_GetMouseState(&mx,&my);
+
+                    for(int i = 0;i < graph->points.count;i++)
+                    {
+                        Point* point = LIST_GET_WHOLE(Point,&graph->points,i);
+    
+                        if(point->hover)
+                        {
+                            LIST_DEL(Point,&graph->points,i);
+                        }
+                    } 
                 }
             break;
     }

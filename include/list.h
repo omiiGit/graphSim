@@ -131,7 +131,7 @@ do{\
 
 #define PRINT_LIST(type,list)\
 do{\
-    if((list)->count) == 0)\
+    if((list)->count == 0)\
     {\
         printf("List is empty\n");\
     }\

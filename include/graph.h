@@ -84,6 +84,7 @@ typedef struct
 
     bool hover;
     bool clicked;
+    bool del;
 }Point;
 
 Graph createGraph(int width,int height,int scale);
@@ -95,7 +96,8 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph);
 
 
 void setPoint(Graph* graph,int mx,int my);
-void deletePoint(Graph* graph,int mx,int my);
+void deletePoints(Graph* graph);
+void drawPoints(SDL_Renderer* renderer,Graph* graph);
 void printPoints(Graph* graph);
 void drawPointSprite(SDL_Renderer* renderer,Graph* graph);
 void drawPoints(SDL_Renderer* renderer,Graph* graph);

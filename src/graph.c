@@ -20,6 +20,8 @@ Graph createGraph(int width,int height,int scale)
 
 void updateGraph(Graph* graph)
 {
+    deletePoints(graph);
+
     if(graph->zoomOut && graph->scale > 10) 
             graph->scale -= 5;
     if(graph->zoomIn)
@@ -27,7 +29,7 @@ void updateGraph(Graph* graph)
     graph->zoomOut = graph->zoomIn = false;
 
 
-    if(graph->toolbar.hover == false && (graph->mode & DELETE))
+    if(graph->toolbar.hover == false)
     {
         int mx,my;
 
@@ -51,7 +53,11 @@ void updateGraph(Graph* graph)
     if(graph->toolbar.draw.clicked)
     {
         printf("draw is clicked\n");
+
         graph->mode &= ~DELETE;
+
+        if(graph->toolbar.delete.selected)
+            graph->toolbar.delete.selected = false;
 
         if(!graph->toolbar.draw.selected)
         {
@@ -90,6 +96,7 @@ void updateGraph(Graph* graph)
     if(graph->toolbar.delete.clicked)
     {
         printf("delete is clicked\n");
+
         graph->mode &= ~DRAW;
 
         if(graph->toolbar.draw.selected)
@@ -256,12 +263,16 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
 
 void setPoint(Graph* graph,int mx,int my)
 {
+    printf("%x\n",graph->mode);
 
     float x = (float)(mx - graph->oX) / graph->scale;
     float y = (float)(my - graph->oY) / -graph->scale; 
 
     Point point = {mx,my,x,y};
     point.hover = false;
+    point.clicked = false;
+    point.del = false;
+
     char sx[10]; snprintf(sx,10,"%.1f",point.x);
     char sy[10]; snprintf(sy,10,"%.1f",point.y);
 
@@ -278,11 +289,22 @@ void setPoint(Graph* graph,int mx,int my)
     printPoints(graph);
 }
 
-void deletePoint(Graph* graph,int mx,int my)
-{
-    float x = (float)(mx - graph->oX) / graph->scale;
-    float y = (float)(my - graph->oY) / -graph->scale; 
 
+void deletePoints(Graph* graph)
+{
+    for(int i = 0;i < graph->points.count;i++)
+    {
+        Point* point = LIST_GET_WHOLE(Point,&graph->points,i);
+
+        if(point->del == true)
+        {
+            if(point != NULL) 
+            {
+                LIST_DEL(Point,&graph->points,i);
+                printf("point %d deleted",i);
+            }
+        }
+    }
 }
 
 void printPoints(Graph* graph)
@@ -331,8 +353,9 @@ void drawPoints(SDL_Renderer* renderer,Graph* graph)
 
         SDL_RenderFillRect(renderer,&p);
         
-        if(graph->mode & INFO)
+        if(graph->mode & INFO || (point.hover && (graph->mode & NORMAL)))
             drawText(renderer,graph->font,point.info,sx-25,sy-15,1,50,32);
+
     }
 }
 
@@ -389,7 +412,7 @@ void graphEvent(SDL_Event e,Graph* graph)
                 }
                 if(graph->toolbar.hover == false && (graph->mode & DELETE))
                 {
-                           int mx,my;
+                    int mx,my;
 
                     SDL_GetMouseState(&mx,&my);
 
@@ -399,7 +422,11 @@ void graphEvent(SDL_Event e,Graph* graph)
     
                         if(point->hover)
                         {
-                            LIST_DEL(Point,&graph->points,i);
+                            point->del = true;
+                        }
+                        else 
+                        {
+                            point->del = false;
                         }
                     } 
                 }

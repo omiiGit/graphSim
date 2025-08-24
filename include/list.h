@@ -100,7 +100,7 @@ do{\
     else if((pos) == (list)->count - 1)\
     {\
         Node* __j = (list)->tail;\
-        (list)->tail = (list)->tail->next;\
+        (list)->tail = (list)->tail->prev;\
         free(__j);\
     }\
     else\

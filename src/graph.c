@@ -29,7 +29,7 @@ void updateGraph(Graph* graph)
     graph->zoomOut = graph->zoomIn = false;
 
 
-    if(graph->toolbar.hover == false)
+    if(!graph->toolbar.hover && !(graph->mode & DRAW))
     {
         int mx,my;
 
@@ -263,12 +263,11 @@ void renderGraph(SDL_Renderer* renderer,Graph* graph)
 
 void setPoint(Graph* graph,int mx,int my)
 {
-    printf("%x\n",graph->mode);
-
     float x = (float)(mx - graph->oX) / graph->scale;
     float y = (float)(my - graph->oY) / -graph->scale; 
 
-    Point point = {mx,my,x,y};
+
+    Point point = {.x = x,.y = y};
     point.hover = false;
     point.clicked = false;
     point.del = false;
@@ -286,7 +285,6 @@ void setPoint(Graph* graph,int mx,int my)
     free(info);
 
     LIST_ADD(Point,&graph->points,point); 
-    printPoints(graph);
 }
 
 
@@ -309,6 +307,7 @@ void deletePoints(Graph* graph)
 
 void printPoints(Graph* graph)
 {
+    printf("\n");
 
     for(int i = 0;i < graph->points.count;i++)
     {
@@ -338,23 +337,25 @@ void drawPoints(SDL_Renderer* renderer,Graph* graph)
 
     for(int i = 0;i < graph->points.count;i++)
     {
-        Point point = LIST_GET(Point,&graph->points,i);
+        Point* point = LIST_GET_WHOLE(Point,&graph->points,i);
 
-        int sx = graph->oX + (graph->scale * point.x);
-        int sy = graph->oY - (graph->scale * point.y);
+        int sx = graph->oX + (graph->scale * point->x);
+        int sy = graph->oY - (graph->scale * point->y);
+
+        point->mx = sx;
+        point->my = sy;
         
-        if(point.hover == true)
+        if(point->hover == true)
             SDL_SetRenderDrawColor(renderer,255,0,0,255);
         else 
             SDL_SetRenderDrawColor(renderer,0,0,255,255);
-
 
         SDL_Rect p = {sx-1,sy-2,4,4};
 
         SDL_RenderFillRect(renderer,&p);
         
-        if(graph->mode & INFO || (point.hover && (graph->mode & NORMAL)))
-            drawText(renderer,graph->font,point.info,sx-25,sy-15,1,50,32);
+        if(graph->mode & INFO || (point->hover && (graph->mode & NORMAL)))
+            drawText(renderer,graph->font,point->info,sx-25,sy-15,1,50,32);
 
     }
 }
@@ -376,22 +377,14 @@ void graphEvent(SDL_Event e,Graph* graph)
         case SDL_KEYDOWN:
             switch(e.key.keysym.sym)
             {
-                case SDLK_d:
-                    PANE_RIGHT;
-                break;
-                case SDLK_a:
-                    PANE_LEFT; 
-                break;
-                case SDLK_w:
-                    PANE_UP;
-                break;
-                case SDLK_s:
-                    PANE_DOWN;
-                break;
+                case SDLK_d: PANE_RIGHT; break;
+                case SDLK_a: PANE_LEFT; break;
+                case SDLK_w: PANE_UP; break;
+                case SDLK_s: PANE_DOWN; break;
+                case SDLK_UP: printPoints(graph); break;
             }
             break;
             case SDL_MOUSEWHEEL:
-
                 if(e.wheel.y < 0)
                 {
                     graph->zoomOut = true;
@@ -405,12 +398,12 @@ void graphEvent(SDL_Event e,Graph* graph)
 
             break;
             case SDL_MOUSEBUTTONDOWN:
-                if(graph->toolbar.hover == false && (graph->mode & DRAW))
+                if(!graph->toolbar.hover && (graph->mode & DRAW))
                 {
                     SDL_GetMouseState(&mouseX,&mouseY);
                     setPoint(graph,mouseX,mouseY);
                 }
-                if(graph->toolbar.hover == false && (graph->mode & DELETE))
+                if(!graph->toolbar.hover && graph->mode & DELETE)
                 {
                     int mx,my;
 
